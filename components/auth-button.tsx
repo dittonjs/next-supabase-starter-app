@@ -1,29 +1,40 @@
+"use client"
 import Link from "next/link";
-import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
+import { useAuth } from "@/hooks/use-auth";
 
-export async function AuthButton() {
-  const supabase = await createClient();
+export function AuthButton() {
 
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
+  const {user, loading} = useAuth();
 
-  const user = data?.claims;
+  if (loading) {
+    return (
+      <div className="flex items-center gap-4">
+        <span className="border rounded px-3 py-1 text-sm hover:bg-gray-100"></span>
+      </div>
+    )
+  }
 
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {user.email}!
+      <span>{user.email}</span>
       <LogoutButton />
     </div>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
-      </Button>
-      <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
-      </Button>
+      <Link
+        href="/auth/login"
+        className="border rounded px-3 py-1 text-sm hover:bg-gray-100"
+      >
+        Sign in
+      </Link>
+      <Link
+        href="/auth/sign-up"
+        className="bg-blue-600 text-white rounded px-3 py-1 text-sm hover:bg-blue-700"
+      >
+        Sign up
+      </Link>
     </div>
   );
 }
