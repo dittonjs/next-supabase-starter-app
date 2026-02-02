@@ -24,4 +24,4 @@ jobs:
       
       # Apply Supabase migrations using the production database URL secret
       - name: Apply Supabase migrations
-        run: supabase db push
+        run: SUPABASE_ACCESS_TOKEN=${{ secrets.SUPABASE_ACCESS_TOKEN }} supabase db push
