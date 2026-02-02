@@ -1,17 +1,44 @@
-import { requireAuth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import { DashboardMenu } from "@/app/dashboard/_components/dashboard-menu";
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { DashboardMenu } from "@/app/dashboard/_components/dashboard-menu";
+import { ProfileImageUpload } from "@/app/profile/_components/profile-image-upload";
+import { FormDisplayField } from "@/components/form";
+import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
 
-export default async function ProfilePage() {
-  const user = await requireAuth();
-  const supabase = await createClient();
+export default function ProfilePage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, error } = useProfile();
 
-  // Fetch profile from profiles table
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .single();
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/auth/login");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || profileLoading) {
+    return (
+      <>
+        <div className="flex justify-end p-4">
+          <DashboardMenu />
+        </div>
+        <main className="min-h-screen flex flex-col items-center">
+          <div className="w-full max-w-md">
+            <h1 className="text-4xl font-bold mb-6">Profile</h1>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <>
@@ -24,41 +51,36 @@ export default async function ProfilePage() {
           {error ? (
             <div className="border rounded p-4">
               <p className="text-red-500 mb-2">Error loading profile</p>
-              <p className="text-sm text-gray-600">{error.message}</p>
+              <p className="text-sm text-gray-600">{error}</p>
             </div>
           ) : profile ? (
             <div className="border rounded p-6 space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-600">
-                  Email
-                </label>
-                <p className="mt-1">{user.email}</p>
+              <div className="flex justify-center pb-4">
+                <ProfileImageUpload
+                  profile={{
+                    profile_picture_url: profile.profile_picture_url,
+                    first_name: profile.first_name,
+                    last_name: profile.last_name,
+                  }}
+                />
               </div>
+              <FormDisplayField label="Email">
+                {user.email}
+              </FormDisplayField>
               {profile.first_name && (
-                <div>
-                  <label className="text-sm font-semibold text-gray-600">
-                    First Name
-                  </label>
-                  <p className="mt-1">{profile.first_name}</p>
-                </div>
+                <FormDisplayField label="First Name">
+                  {profile.first_name}
+                </FormDisplayField>
               )}
               {profile.last_name && (
-                <div>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Last Name
-                  </label>
-                  <p className="mt-1">{profile.last_name}</p>
-                </div>
+                <FormDisplayField label="Last Name">
+                  {profile.last_name}
+                </FormDisplayField>
               )}
               {profile.created_at && (
-                <div>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Member Since
-                  </label>
-                  <p className="mt-1">
-                    {new Date(profile.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                <FormDisplayField label="Member Since">
+                  {new Date(profile.created_at).toLocaleDateString()}
+                </FormDisplayField>
               )}
             </div>
           ) : (

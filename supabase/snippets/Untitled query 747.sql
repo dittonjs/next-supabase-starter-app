@@ -1,1 +1,1 @@
-select * from auth.users;
+SELECT * from pg_roles;
