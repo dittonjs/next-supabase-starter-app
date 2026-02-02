@@ -51,7 +51,7 @@ export async function resizeImage(
     bitmap.close();
     return file;
   }
-  ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+  (ctx as CanvasRenderingContext2D).drawImage(bitmap, 0, 0, targetWidth, targetHeight);
   bitmap.close();
 
   const blob = await new Promise<Blob | null>((resolve) => {
